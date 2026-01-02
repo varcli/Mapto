@@ -1,0 +1,7 @@
+<Solution>
+	<Folder Name="/Solution Items/">
+        <File Path="README.md" />
+    </Folder>
+	<Project Path="src/Mapto/Mapto.csproj" />
+	<Project Path="src/Mapto.Test/Mapto.Test.csproj" />
+</Solution>
