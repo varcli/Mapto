@@ -13,7 +13,7 @@
     * `String` -> `int/long/double/decimal` (空字符串自动转默认值)
     * `String` -> `Guid/DateTime/Enum`
     * `String` -> `bool` ("1", "yes", "true", "on")
-* **扩展方法支持**: 丝滑的链式调用 `.To<Target>()`。
+* **扩展方法支持**: 丝滑的链式调用 `source.Map<Target>()`。
 * **更新已有对象**: 支持 `source.MapTo(existing)`，适用于 ORM 更新场景。
 * **循环引用保护**: 内置递归深度限制。
 
@@ -28,4 +28,4 @@ var entity = new UserEntity { Id = 1, Name = "Admin" };
 var dto = ObjectMapper.Map<UserEntity, UserDto>(entity);
 
 // 方式 B: 扩展方法 (推荐)
-var dto = entity.To<UserDto>();
+var dto = entity.Map<UserDto>();

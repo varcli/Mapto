@@ -2,8 +2,27 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netstandard2.1;.net8.0;.net9.0;.net10.0</TargetFrameworks>
-		<Nullable>disable</Nullable>
 		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+
+		<PackageId>Mapto</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>varcli</Authors>
+		<Company>varcli</Company>
+		<Description>A minimalist, high-performance, single-file object mapper for .NET. Zero dependencies, near-native speed.</Description>
+		<PackageTags>mapper;object-mapper;mapping;performance;fast;copy;deep-copy;mapto</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/varcli/Mapto</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<DebugType>embedded</DebugType>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
 </Project>
