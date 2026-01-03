@@ -1,7 +1,23 @@
-# Mapto
+# 🚀 Mapto
+
+<div align="center">
+
+> "Type less, map more."
+
+[简体中文](./README.md) | [English](./README.en.md)
+
+</div>
 
 一个极简、极速、零配置的 .NET 对象映射库。
 单文件封装，无第三方依赖。
+
+## 📖 简介
+
+**Mapto** 专为追求**简单**、**极速**和**智能**的开发者设计。
+
+与传统的重型映射库不同，Mapto极其轻量。它底层基于 **表达式树 (Expression Tree)** 和 **泛型静态缓存 (Generic Static Cache)** 技术，拥有媲美原生手写代码的运行速度（比传统反射映射快约 3 倍）。
+
+它仅由**一个单文件**组成，你可以直接将其嵌入到项目。
 
 ## ✨ 核心特性
 
@@ -16,6 +32,7 @@
 * **扩展方法支持**: 丝滑的链式调用 `source.Map<Target>()`。
 * **更新已有对象**: 支持 `source.MapTo(existing)`，适用于 ORM 更新场景。
 * **循环引用保护**: 内置递归深度限制。
+* **EF Core 支持**：原生支持 `IQueryable` 投影 (`.ProjectTo<T>()`)，生成纯净 SQL。
 
 ## 🚀 快速开始
 
