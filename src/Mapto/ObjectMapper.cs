@@ -117,7 +117,6 @@ public static class ObjectMapper
             var itemDest = GetElementType(typeof(TDestination));
             var method = _mapEnum.MakeGenericMethod(itemSrc, itemDest);
 
-            // [关键修复] 添加 Convert 强转: object -> TDestination (e.g. List<int>)
             var call = Expression.Call(method, Expression.Convert(p, typeof(IEnumerable<>).MakeGenericType(itemSrc)), Expression.Constant(typeof(TDestination)));
             var castedResult = Expression.Convert(call, typeof(TDestination));
 
@@ -149,7 +148,6 @@ public static class ObjectMapper
                 var val = BuildValueExpression(p, typeof(TSource), dProp);
                 if (val != null) bindings.Add(Expression.Bind(dProp, val));
             }
-            // [安全] 仅对引用类型生成 Null 检查
             var nullCheck = IsNullable(typeof(TSource))
                 ? Expression.Condition(Expression.Equal(p, Expression.Constant(null, typeof(TSource))), Expression.Default(typeof(TDestination)), Expression.MemberInit(newExp, bindings))
                 : (Expression)Expression.MemberInit(newExp, bindings);
@@ -280,7 +278,6 @@ public static class ObjectMapper
             else if (dType == typeof(string))
             {
                 var m = typeof(object).GetMethod("ToString");
-                // [Fix] 仅对可空类型生成判空
                 if (IsNullable(sType))
                     res = Expression.Condition(Expression.Equal(s, Expression.Constant(null, sType)), Expression.Constant(null, typeof(string)), Expression.Call(s, m));
                 else
