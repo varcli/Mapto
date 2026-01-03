@@ -72,6 +72,38 @@ public class FullCoverageTest
             // Source.Deep.A.B -> Dest.DeepAB (Deep is null in source)
             Assert("Flattening Null Safety", null, dest.DeepAB); // 不应该崩，应为null
 
+            // --- 9. ForMember & Ignore 配置测试 ---
+            Console.WriteLine("\n[9. ForMember & Ignore Configuration]");
+            var configSrc = new ConfigSource { Id = 1, Name = "Test", Age = 25 };
+            var configDest = configSrc.Map<ConfigSource, ConfigDest>(cfg => cfg
+                .ForMember(d => d.FullName, s => s.Name.ToUpper())
+                .Ignore(d => d.Age));
+            Assert("ForMember Custom", "TEST", configDest.FullName);
+            Assert("Ignore Property", 0, configDest.Age);
+            Assert("Normal Mapping", 1, configDest.Id);
+
+            // --- 10. 集合映射配置测试 (MapEach) ---
+            Console.WriteLine("\n[10. Collection Mapping with MapEach]");
+            var menuList = new List<MenuItem> {
+                new MenuItem { Id = 1, Name = "Home", ExtraProperties = "meta1" },
+                new MenuItem { Id = 2, Name = "About", ExtraProperties = "meta2" }
+            };
+            var menuDtos = menuList.MapEach<MenuItem, MenuItemDto>(cfg => cfg
+                .ForMember(d => d.Meta, s => s.ExtraProperties)
+                .Ignore(d => d.Name));
+            Assert("Collection Count", 2, menuDtos.Count);
+            Assert("Element ForMember", "meta1", menuDtos[0].Meta);
+            Assert("Element Ignore", null, menuDtos[0].Name);
+            Assert("Element Normal Map", 1, menuDtos[0].Id);
+
+            // --- 11. 特性映射测试 (NoMap & MapAs) ---
+            Console.WriteLine("\n[11. Attribute Mapping (NoMap & MapAs)]");
+            var attrSrc = new AttributeSource { Id = 100, Secret = "hidden", Data = "test-data" };
+            var attrDest = attrSrc.Map<AttributeSource, AttributeDest>();
+            Assert("Normal Property", 100, attrDest.Id);
+            Assert("NoMap Attribute", null, attrDest.Secret);
+            Assert("MapAs Attribute", "test-data", attrDest.CustomField);
+
             Console.WriteLine("\n--------------------------------------------------");
             Console.WriteLine("✅  全类型测试完美通过 (All Types Passed)");
             Console.WriteLine("--------------------------------------------------");
@@ -241,4 +273,50 @@ public class NestedSrc
 public class NestedInner
 {
     public string B { get; set; }
+}
+
+public class ConfigSource
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+
+public class ConfigDest
+{
+    public int Id { get; set; }
+    public string FullName { get; set; }
+    public int Age { get; set; }
+}
+
+public class MenuItem
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string ExtraProperties { get; set; }
+}
+
+public class MenuItemDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Meta { get; set; }
+}
+
+public class AttributeSource
+{
+    public int Id { get; set; }
+    public string Secret { get; set; }
+    public string Data { get; set; }
+}
+
+public class AttributeDest
+{
+    public int Id { get; set; }
+    
+    [NoMap]
+    public string Secret { get; set; }
+    
+    [MapAs("Data")]
+    public string CustomField { get; set; }
 }

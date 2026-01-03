@@ -63,7 +63,7 @@ namespace Mapto.Test
             var tMap = sw.ElapsedMilliseconds;
             PrintResult("2. ObjectMapper.Map ", tMap, tNative);
 
-            // Target: Extension .To<T>
+            // Target: Extension .Map<T>
             GC.Collect();
             sw.Restart();
             for (int i = 0; i < ITERATIONS; i++)
@@ -72,7 +72,7 @@ namespace Mapto.Test
             }
             sw.Stop();
             var tExt = sw.ElapsedMilliseconds;
-            PrintResult("3. Extension .To<T> ", tExt, tNative); // V14优化重点：应与 Map 持平
+            PrintResult("3. Extension .Map<T> ", tExt, tNative); // V14优化重点：应与 Map 持平
 
             // =================================================
             // 测试 2: 更新已有对象 (Update Existing / Zero Alloc)

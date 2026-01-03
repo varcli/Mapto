@@ -177,10 +177,29 @@ public static class ObjectMapper
     #region 表达式构建逻辑
     private static Expression BuildValueExpression(Expression pSrc, Type sType, PropertyInfo dProp)
     {
+        // 检查 NoMap 特性
+        if (dProp.GetCustomAttributes(typeof(NoMapAttribute), false).Length > 0)
+            return null;
+
         Expression val = null;
-        var direct = sType.GetProperties(BindingFlags.Public | BindingFlags.Instance).FirstOrDefault(p => p.Name.Equals(dProp.Name, StringComparison.OrdinalIgnoreCase));
-        if (direct != null && direct.CanRead) val = Expression.Property(pSrc, direct);
-        else val = FindFlattenedProperty(pSrc, sType, dProp.Name);
+        
+        // 检查 MapAs 特性
+        var mapAsAttr = dProp.GetCustomAttributes(typeof(MapAsAttribute), false).FirstOrDefault() as MapAsAttribute;
+        if (mapAsAttr != null)
+        {
+            var sourceProp = sType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault(p => p.Name.Equals(mapAsAttr.SourcePropertyName, StringComparison.OrdinalIgnoreCase));
+            if (sourceProp != null && sourceProp.CanRead)
+                val = Expression.Property(pSrc, sourceProp);
+        }
+        else
+        {
+            // 默认匹配逻辑
+            var direct = sType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault(p => p.Name.Equals(dProp.Name, StringComparison.OrdinalIgnoreCase));
+            if (direct != null && direct.CanRead) val = Expression.Property(pSrc, direct);
+            else val = FindFlattenedProperty(pSrc, sType, dProp.Name);
+        }
 
         if (val != null) return TryConvert(val, val.Type, dProp.PropertyType);
         return null;
