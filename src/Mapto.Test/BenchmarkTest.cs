@@ -30,10 +30,15 @@ namespace Mapto.Test
             // 让 JIT 编译代码，并触发 ObjectMapper 的静态构造函数和缓存构建
             Console.Write("正在预热 JIT & 缓存... ");
             ManualMap(src);
+
             ObjectMapper.Map<BenchSrc, BenchDest>(src);
             src.Map<BenchDest>();
+
             var reuseDest = new BenchDest();
             src.MapTo(reuseDest);
+
+            var reuseCtorDest = new BenchCtorDest(70);
+            src.MapTo(reuseCtorDest);
             Console.WriteLine("完成.\n");
 
             // =================================================
@@ -81,6 +86,7 @@ namespace Mapto.Test
 
             // Baseline: Native Update
             var target = new BenchDest();
+            var targetCtor = new BenchCtorDest(70);
             GC.Collect();
             sw.Restart();
             for (int i = 0; i < ITERATIONS; i++)
@@ -101,6 +107,17 @@ namespace Mapto.Test
             sw.Stop();
             var tMapTo = sw.ElapsedMilliseconds;
             PrintResult("2. .MapTo(existing) ", tMapTo, tNativeUpd);
+
+            // Target: MapTo Ctor
+            GC.Collect();
+            sw.Restart();
+            for (int i = 0; i < ITERATIONS; i++)
+            {
+                src.MapTo(targetCtor);
+            }
+            sw.Stop();
+            var tCtorMapTo = sw.ElapsedMilliseconds;
+            PrintResult("3. .MapTo(existing) Ctor ", tCtorMapTo, tNativeUpd);
 
             Console.WriteLine("\n==========================================================");
         }
@@ -163,6 +180,20 @@ namespace Mapto.Test
 
     public class BenchDest
     {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double Price { get; set; } // 类型不同，需转换
+        public DateTime Date { get; set; }
+        public string[] Tags { get; set; } // 集合类型不同
+        public int Status { get; set; }    // 枚举转整型
+    }
+
+    public class BenchCtorDest
+    {
+        public BenchCtorDest(int id)
+        {
+            Id = id;
+        }
         public int Id { get; set; }
         public string Name { get; set; }
         public double Price { get; set; } // 类型不同，需转换

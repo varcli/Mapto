@@ -5,6 +5,7 @@
 		<LangVersion>latest</LangVersion>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>disable</Nullable>
+		<NoWarn>$(NoWarn);CS1591;CS0436;CS8618;NU1803</NoWarn>
 
 		<PackageId>Mapto</PackageId>
 		<Version>1.0.0</Version>

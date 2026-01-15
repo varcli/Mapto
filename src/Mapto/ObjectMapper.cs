@@ -71,36 +71,55 @@ public static class ObjectMapper
     #region 核心引擎
     private static class MapperCache<TSource, TDestination>
     {
-        public static readonly Func<TSource, TDestination> MapperFunc;
-        public static readonly Action<TSource, TDestination> MergeAction;
+        private static Func<TSource, TDestination> _mapperFunc;
+        private static Action<TSource, TDestination> _mergeAction;
         public static readonly bool IsBasic;
+
+        public static Func<TSource, TDestination> MapperFunc
+        {
+            get
+            {
+                if (_mapperFunc == null)
+                {
+                    var sType = typeof(TSource);
+                    var dType = typeof(TDestination);
+                    if (IsDictionary(sType) && IsDictionary(dType))
+                        _mapperFunc = CompileDictionaryMapper();
+                    else if (IsEnumerable(sType) && IsEnumerable(dType))
+                        _mapperFunc = CompileEnumerableMapper();
+                    else if (IsBasicType(sType) || IsBasicType(dType))
+                        _mapperFunc = CompileBasicTypeMapper();
+                    else
+                        _mapperFunc = CreateMapDelegate();
+                }
+                return _mapperFunc;
+            }
+        }
+
+        public static Action<TSource, TDestination> MergeAction
+        {
+            get
+            {
+                if (_mergeAction == null)
+                {
+                    var sType = typeof(TSource);
+                    var dType = typeof(TDestination);
+                    if (IsDictionary(sType) && IsDictionary(dType))
+                        _mergeAction = (s, d) => { var n = MapperFunc(s); CopyDictionary(n, d as IDictionary); };
+                    else if (IsEnumerable(sType) && IsEnumerable(dType))
+                        _mergeAction = (s, d) => { };
+                    else if (IsBasicType(sType) || IsBasicType(dType))
+                        _mergeAction = (s, d) => { };
+                    else
+                        _mergeAction = CreateMergeDelegate();
+                }
+                return _mergeAction;
+            }
+        }
 
         static MapperCache()
         {
-            var sType = typeof(TSource);
-            var dType = typeof(TDestination);
-            IsBasic = IsBasicType(dType);
-
-            if (IsDictionary(sType) && IsDictionary(dType))
-            {
-                MapperFunc = CompileDictionaryMapper();
-                MergeAction = (s, d) => { var n = MapperFunc(s); CopyDictionary(n, d as IDictionary); };
-            }
-            else if (IsEnumerable(sType) && IsEnumerable(dType))
-            {
-                MapperFunc = CompileEnumerableMapper();
-                MergeAction = (s, d) => { };
-            }
-            else if (IsBasicType(sType) || IsBasicType(dType))
-            {
-                MapperFunc = CompileBasicTypeMapper();
-                MergeAction = (s, d) => { };
-            }
-            else
-            {
-                MapperFunc = CreateMapDelegate();
-                MergeAction = CreateMergeDelegate();
-            }
+            IsBasic = IsBasicType(typeof(TDestination));
         }
 
         private static Func<TSource, TDestination> CompileBasicTypeMapper()
@@ -140,6 +159,16 @@ public static class ObjectMapper
         private static Func<TSource, TDestination> CreateMapDelegate()
         {
             var p = Expression.Parameter(typeof(TSource), "source");
+
+            // 检查目标类型是否有无参构造函数
+            var defaultCtor = typeof(TDestination).GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null);
+            if (defaultCtor == null)
+            {
+                throw new InvalidOperationException(
+                    $"Cannot create mapper for type '{typeof(TDestination).FullName}' because it does not have a parameterless constructor. " +
+                    $"Use Map(source, existingInstance) overload to map to an existing instance instead.");
+            }
+
             var newExp = Expression.New(typeof(TDestination));
             var bindings = new List<MemberBinding>();
             foreach (var dProp in typeof(TDestination).GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -182,7 +211,7 @@ public static class ObjectMapper
             return null;
 
         Expression val = null;
-        
+
         // 检查 MapAs 特性
         var mapAsAttr = dProp.GetCustomAttributes(typeof(MapAsAttribute), false).FirstOrDefault() as MapAsAttribute;
         if (mapAsAttr != null)
